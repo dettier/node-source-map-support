@@ -140,7 +140,7 @@ function wrapCallSite(cache, frame) {
       __proto__: frame,
       getFileName: function() { return position.source; },
       getLineNumber: function() { return position.line; },
-      getColumnNumber: function() { return position.column; },
+      getColumnNumber: function() { return position.column || 1; },
       getScriptNameOrSourceURL: function() { return position.source; }
     };
   }
@@ -196,7 +196,9 @@ function handleUncaughtExceptions(error) {
     }
   }
   console.log(error.stack);
-  process.exit();
+  setTimeout(function () {
+    process.exit();
+  }, 100);
 }
 
 exports.install = function(options) {
@@ -223,3 +225,26 @@ exports.install = function(options) {
     process.on('uncaughtException', handleUncaughtExceptions);
   }
 };
+
+
+var cachedMaps, fs;
+
+fs = require('fs');
+
+cachedMaps = {};
+
+exports.install({
+    retrieveSourceMap: function(source) {
+        var cached, map;
+        if ((cached = cachedMaps[source]) != null) {
+            return cached;
+        }
+        try {
+            map = fs.readFileSync(source + '.map', 'utf8');
+            return cachedMaps[source] = {
+                map: map
+            };
+        } catch (_error) {}
+        return null;
+    }
+});
