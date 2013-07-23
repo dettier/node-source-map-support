@@ -242,6 +242,7 @@ exports.install({
         try {
             map = fs.readFileSync(source + '.map', 'utf8');
             return cachedMaps[source] = {
+                url : source,
                 map: map
             };
         } catch (_error) {}
